@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trình Chia Văn Bản Thành Nút Sao Chép</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
+    /* ===== BIẾN CSS TOÀN CỤC ===== */
     :root {
         --primary-color: #4a69bd;
         --primary-light: rgba(74, 105, 189, 0.1);
@@ -15,6 +14,7 @@
         --accent-color: #e74c3c;
         --success-color: #27ae60;
         --warning-color: #e67e22;
+
         --light-bg: #ecf0f1;
         --card-bg: #ffffff;
         --text-dark: #2c3e50;
@@ -27,6 +27,7 @@
         --card-padding: 30px;
     }
 
+    /* ===== RESET & BASE STYLES ===== */
     * {
         margin: 0;
         padding: 0;
@@ -42,11 +43,13 @@
         line-height: 1.6;
     }
 
+    /* ===== LAYOUT CONTAINERS ===== */
     .app-container {
         max-width: var(--container-max-width);
         margin: 0 auto;
     }
 
+    /* ===== HEADER STYLES ===== */
     .header {
         text-align: center;
         margin-bottom: 40px;
@@ -72,6 +75,7 @@
         margin-top: 8px;
     }
 
+    /* ===== CARD COMPONENT ===== */
     .card {
         background: var(--card-bg);
         border-radius: var(--border-radius);
@@ -101,6 +105,7 @@
         padding: var(--card-padding);
     }
 
+    /* ===== INSTRUCTIONS COMPONENT ===== */
     .instructions {
         background: var(--primary-light);
         padding: 20px;
@@ -127,6 +132,7 @@
         margin-bottom: 8px;
     }
 
+    /* ===== SETTINGS PANEL ===== */
     .settings-panel {
         background: var(--light-bg);
         padding: 20px;
@@ -149,6 +155,7 @@
         gap: 8px;
     }
 
+    /* ===== WORD COUNT CONTROL ===== */
     .word-count-control {
         display: flex;
         align-items: center;
@@ -189,92 +196,7 @@
         opacity: 0;
     }
 
-    .editor-container {
-        position: relative;
-        margin-bottom: 20px;
-    }
-
-    #inputTextEditor, .processed-text-editor {
-        width: 100%;
-        padding: 15px;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        font-size: 1rem;
-        font-family: inherit;
-        transition: var(--transition);
-        margin-top: 10px;
-        margin-bottom: 10px;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
-        background: #f9f9f9;
-        outline: none;
-    }
-
-    #inputTextEditor {
-        height: 150px;
-        background: #fff;
-        overflow-y: auto;
-    }
-
-    #inputTextEditor.expanded {
-        height: auto ;
-        overflow-y: auto;
-    }
-
-    .processed-text-editor {
-        height: 100px;
-        overflow-y: auto;
-    }
-
-    .processed-text-editor.expanded {
-        height: auto ;
-    }
-
-    #inputTextEditor:focus, .processed-text-editor:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px var(--primary-light);
-    }
-
-    .editor-toolbar {
-        margin-bottom: 10px;
-        display: flex;
-        gap: 10px;
-    }
-
-    .editor-button {
-        background: var(--secondary-color);
-        color: #fff;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-    .editor-button:hover {
-        background: var(--primary-color);
-    }
-
-    .expand-button {
-        background: #3c52e7;
-        color: #fff;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: var(--transition);
-        font-size: 0.9rem;
-    }
-
-    #expandInputButton {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-    }
-
-    .expand-button:hover {
-        opacity: 0.9;
-    }
-
+    /* ===== TEXTAREA ===== */
     textarea {
         width: 100%;
         min-height: 250px;
@@ -302,6 +224,7 @@
         background: #fdfdfd;
     }
 
+    /* ===== BUTTONS ===== */
     .action-button {
         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         color: #fff;
@@ -381,12 +304,32 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
+    /* ===== PROCESSED TEXTAREA ===== */
+    .processed-textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        resize: vertical;
+        font-size: 1rem;
+        margin-top: 10px;
+        background: #f9f9f9;
+    }
+
+    .processed-textarea:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
+        outline: none;
+    }
+
     .error-rate {
         font-size: 0.9rem;
         color: var(--accent-color);
         margin-top: 5px;
     }
 
+    /* ===== SPLIT BUTTONS GRID ===== */
     #splitButtons {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -394,6 +337,7 @@
         margin-top: 20px;
     }
 
+    /* ===== STATS ===== */
     .stats {
         display: flex;
         justify-content: space-around;
@@ -441,6 +385,7 @@
         opacity: 0.9;
     }
 
+    /* ===== TOGGLE SWITCH ===== */
     .toggle-label {
         display: flex;
         align-items: center;
@@ -478,6 +423,7 @@
         left: 22px;
     }
 
+    /* ===== PROMPT EDITOR ===== */
     .prompt-header {
         display: flex;
         justify-content: space-between;
@@ -529,6 +475,7 @@
         background: var(--primary-color);
     }
 
+    /* ===== EMPTY STATE ===== */
     .empty-state {
         text-align: center;
         padding: 40px;
@@ -541,24 +488,7 @@
         margin-bottom: 15px;
     }
 
-    .download-controls {
-        margin-top: 20px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .download-controls select, .download-controls input[type="checkbox"] {
-        padding: 8px;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-    }
-
-    .download-controls label {
-        margin-right: 10px;
-    }
-
+    /* ===== NOTIFICATION ===== */
     .notification {
         position: fixed;
         top: 20px;
@@ -596,17 +526,12 @@
         75% { transform: translateX(-4px); }
     }
 
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
         .header h1 { font-size: 2rem; }
         #splitButtons { grid-template-columns: 1fr; }
         .stats { flex-direction: column; gap: 20px; }
         .prompt-header { flex-direction: column; align-items: flex-start; }
-    }
-
-    [contenteditable]:empty:before {
-        content: attr(placeholder);
-        color: #7f8c8d;
-        pointer-events: none;
     }
     </style>
 </head>
@@ -625,7 +550,7 @@
                 <div class="instructions">
                     <h3><i class="fas fa-info-circle"></i> Hướng Dẫn</h3>
                     <ol>
-                        <li>Nhập văn bản vào ô dưới đây, hỗ trợ in đậm, in nghiêng và in hoa.</li>
+                        <li>Dán hoặc nhập văn bản vào ô dưới đây.</li>
                         <li>Chọn số từ mỗi phần (mặc định: 2000).</li>
                         <li>Nhấn "Chia Văn Bản" để tạo các nút sao chép.</li>
                         <li>Nhập dữ liệu đã xử lý để kiểm tra sai sót.</li>
@@ -650,16 +575,7 @@
                     </div>
                 </div>
 
-                <div class="editor-toolbar">
-                    <button class="editor-button" id="boldButton"><i class="fas fa-bold"></i></button>
-                    <button class="editor-button" id="italicButton"><i class="fas fa-italic"></i></button>
-                    <button class="editor-button" id="uppercaseButton"><i class="fas fa-arrow-up"></i> HOA</button>
-                    <button class="editor-button" id="lowercaseButton"><i class="fas fa-arrow-down"></i> thường</button>
-                </div>
-                <div class="editor-container">
-                    <div contenteditable="true" id="inputTextEditor" placeholder="Nhập hoặc dán văn bản tại đây..."></div>
-                    <button class="expand-button" id="expandInputButton">Mở rộng</button>
-                </div>
+                <textarea id="inputText" placeholder="Nhập hoặc dán văn bản tại đây..."></textarea>
                 <button id="splitButton" class="action-button"><i class="fas fa-cut"></i> Chia Văn Bản</button>
 
                 <div id="stats" class="stats" style="display: none;">
@@ -690,15 +606,6 @@
                         <i class="fas fa-file-alt"></i>
                         <p>Chưa có nội dung. Nhập văn bản và nhấn "Chia Văn Bản" để bắt đầu.</p>
                     </div>
-                </div>
-                <div class="download-controls">
-                    <label for="downloadOrder">Trật tự tải:</label>
-                    <select id="downloadOrder">
-                        <option value="asc">Theo thứ tự (1 → n)</option>
-                        <option value="desc">Đảo ngược (n → 1)</option>
-                    </select>
-                    <label><input type="checkbox" id="selectAllParts" checked> Chọn tất cả</label>
-                    <button id="downloadProcessedButton" class="action-button"><i class="fas fa-download"></i> Tải Văn Bản Đã Nhập</button>
                 </div>
             </div>
         </div>
@@ -748,7 +655,7 @@
         isPromptEnabled: true,
         lastPastedText: '',
         blockDuplicatePaste: true,
-        originalChunks: [],
+        originalChunks: [], // Lưu các phần văn bản gốc
     };
 
     function initializeApp() {
@@ -757,6 +664,7 @@
         document.getElementById('wordCount').value = appState.wordCount;
         document.getElementById('blockDuplicatePaste').checked = appState.blockDuplicatePaste;
         setupEventListeners();
+        updatePromptState();
     }
 
     function loadSavedSettings() {
@@ -792,37 +700,9 @@
         document.getElementById('savePromptButton').addEventListener('click', savePrompt);
         document.getElementById('exportPromptButton').addEventListener('click', exportPrompt);
         document.getElementById('importPromptButton').addEventListener('click', () => document.getElementById('promptFileInput').click());
-        document.getElementById('inputTextEditor').addEventListener('paste', checkDuplicatePaste);
+        document.getElementById('inputText').addEventListener('paste', checkDuplicatePaste);
         document.getElementById('blockDuplicatePaste').addEventListener('change', toggleBlockDuplicatePaste);
         document.getElementById('resetCopyCount').addEventListener('click', resetCopyCount);
-        document.getElementById('downloadProcessedButton').addEventListener('click', downloadProcessedText);
-        
-        document.getElementById('boldButton').addEventListener('click', () => document.execCommand('bold', false, null));
-        document.getElementById('italicButton').addEventListener('click', () => document.execCommand('italic', false, null));
-        document.getElementById('uppercaseButton').addEventListener('click', () => transformText('uppercase'));
-        document.getElementById('lowercaseButton').addEventListener('click', () => transformText('lowercase'));
-        
-        document.getElementById('expandInputButton').addEventListener('click', () => {
-            const editor = document.getElementById('inputTextEditor');
-            editor.classList.toggle('expanded');
-            const button = document.getElementById('expandInputButton');
-            button.textContent = editor.classList.contains('expanded') ? 'Thu gọn' : 'Mở rộng';
-        });
-
-        document.getElementById('selectAllParts').addEventListener('change', toggleSelectAll);
-    }
-
-    function transformText(type) {
-        const selection = window.getSelection();
-        if (selection.rangeCount) {
-            const range = selection.getRangeAt(0);
-            const selectedText = range.toString();
-            if (selectedText) {
-                const newText = type === 'uppercase' ? selectedText.toUpperCase() : selectedText.toLowerCase();
-                range.deleteContents();
-                range.insertNode(document.createTextNode(newText));
-            }
-        }
     }
 
     function updateWordCount(e) {
@@ -892,49 +772,48 @@
     }
 
     function normalizeText(text) {
-        return text
-            .replace(/\s+/g, ' ')
-            .replace(/[.,!?]+$/g, '')
-            .trim()
-            .toLowerCase();
-    }
+    return text
+        .replace(/\s+/g, ' ') // Chuẩn hóa khoảng trắng
+        .trim()
+        .toLowerCase(); // Chuyển về chữ thường (tùy chọn)
+}
 
-    function calculateErrorRate(originalText, processedText) {
-        const originalSentences = originalText
-            .split(/[.!?]+/)
-            .map(s => normalizeText(s))
-            .filter(s => s.length > 0);
-        
-        const processedSentences = processedText
-            .split(/[.!?]+/)
-            .map(s => normalizeText(s))
-            .filter(s => s.length > 0);
+function calculateErrorRate(originalText, processedText) {
+    const originalSentences = normalizeText(originalText)
+        .split(/[.!?]+/)
+        .map(sentence => sentence.trim())
+        .filter(sentence => sentence.length > 0);
+    
+    const processedSentences = normalizeText(processedText)
+        .split(/[.!?]+/)
+        .map(sentence => sentence.trim())
+        .filter(sentence => sentence.length > 0);
 
-        let missingInProcessed = 0;
-        let missingInOriginal = 0;
+    let missingInProcessed = 0;
+    let missingInOriginal = 0;
 
-        originalSentences.forEach(originalSentence => {
-            if (!processedSentences.includes(originalSentence)) {
-                missingInProcessed++;
-            }
-        });
+    originalSentences.forEach(originalSentence => {
+        if (!processedSentences.some(procSentence => procSentence === originalSentence)) {
+            missingInProcessed++;
+        }
+    });
 
-        processedSentences.forEach(procSentence => {
-            if (!originalSentences.includes(procSentence)) {
-                missingInOriginal++;
-            }
-        });
+    processedSentences.forEach(procSentence => {
+        if (!originalSentences.some(origSentence => origSentence === originalSentence)) {
+            missingInOriginal++;
+        }
+    });
 
-        const totalDifferences = missingInProcessed + missingInOriginal;
-        const errorRate = originalSentences.length > 0 
-            ? (totalDifferences / originalSentences.length) * 100 
-            : 0;
+    const totalDifferences = missingInProcessed + missingInOriginal;
+    const errorRate = originalSentences.length > 0 
+        ? (totalDifferences / originalSentences.length) * 100 
+        : 0;
 
-        return errorRate.toFixed(2);
-    }
+    return errorRate.toFixed(2);
+}
 
     function splitText() {
-        const inputText = document.getElementById('inputTextEditor').innerText.trim();
+        const inputText = document.getElementById('inputText').value.trim();
         if (!inputText) {
             showEmptyState(document.getElementById('splitButtons'));
             document.getElementById('stats').style.display = 'none';
@@ -977,37 +856,13 @@
             <span class="copy-count">${appState.clickCounts[buttonId]}</span>
         `;
 
-        const toolbar = document.createElement('div');
-        toolbar.className = 'editor-toolbar';
-        toolbar.innerHTML = `
-            <button class="editor-button" onclick="document.execCommand('bold', false, null)"><i class="fas fa-bold"></i></button>
-            <button class="editor-button" onclick="document.execCommand('italic', false, null)"><i class="fas fa-italic"></i></button>
-            <button class="editor-button" onclick="transformText('uppercase')"><i class="fas fa-arrow-up"></i> HOA</button>
-            <button class="editor-button" onclick="transformText('lowercase')"><i class="fas fa-arrow-down"></i> thường</button>
-        `;
-
-        const processedEditor = document.createElement('div');
-        processedEditor.className = 'processed-text-editor';
-        processedEditor.contentEditable = true;
-        processedEditor.dataset.placeholder = `Nhập văn bản đã xử lý cho Phần ${index + 1}...`;
-
-        const expandButton = document.createElement('button');
-        expandButton.className = 'expand-button';
-        expandButton.textContent = 'Bung';
-        expandButton.addEventListener('click', () => {
-            processedEditor.classList.toggle('expanded');
-            expandButton.textContent = processedEditor.classList.contains('expanded') ? 'Thu gọn' : 'Bung';
-        });
+        const processedTextarea = document.createElement('textarea');
+        processedTextarea.className = 'processed-textarea';
+        processedTextarea.placeholder = `Nhập văn bản đã xử lý cho Phần ${index + 1}...`;
 
         const errorRateDisplay = document.createElement('div');
         errorRateDisplay.className = 'error-rate';
         errorRateDisplay.textContent = 'Tỷ lệ sai sót: 0%';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'part-checkbox';
-        checkbox.checked = true;
-        checkbox.dataset.index = index;
 
         button.addEventListener('click', () => {
             const prompt = appState.isPromptEnabled ? document.getElementById('promptTextarea').value : '';
@@ -1015,18 +870,15 @@
             copyTextToClipboard(textToCopy, button, buttonId);
         });
 
-        processedEditor.addEventListener('input', () => {
-            const processedText = processedEditor.innerText.trim();
+        processedTextarea.addEventListener('input', () => {
+            const processedText = processedTextarea.value.trim();
             const errorRate = calculateErrorRate(text, processedText);
             errorRateDisplay.textContent = `Tỷ lệ sai sót: ${errorRate}%`;
         });
 
         buttonWrapper.appendChild(button);
-        buttonWrapper.appendChild(toolbar);
-        buttonWrapper.appendChild(processedEditor);
-        buttonWrapper.appendChild(expandButton);
+        buttonWrapper.appendChild(processedTextarea);
         buttonWrapper.appendChild(errorRateDisplay);
-        buttonWrapper.appendChild(checkbox);
         container.appendChild(buttonWrapper);
     }
 
@@ -1039,79 +891,6 @@
         `;
     }
 
-    function toggleSelectAll(e) {
-        const checkboxes = document.querySelectorAll('.part-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = e.target.checked;
-        });
-    }
-
-    function downloadProcessedText() {
-    const editors = document.querySelectorAll('.processed-text-editor');
-    const order = document.getElementById('downloadOrder').value;
-    const checkboxes = document.querySelectorAll('.part-checkbox');
-
-    if (editors.length === 0) {
-        showNotification('Không có văn bản để tải!', 'warning');
-        return;
-    }
-
-    const parts = Array.from(editors).map((editor, index) => ({
-        index: index,
-        text: editor.innerHTML.trim(), // Sử dụng innerHTML để giữ định dạng
-        checked: checkboxes[index].checked
-    }));
-
-    if (order === 'desc') {
-        parts.reverse();
-    }
-
-    let hasContent = false;
-    let htmlContent = `
-        <!DOCTYPE html>
-        <html lang="vi">
-        <head>
-            <meta charset="UTF-8">
-            <title>Văn Bản Đã Xử Lý</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
-                h2 { color: #2c3e50; margin-top: 20px; }
-                p { margin-bottom: 15px; }
-                .no-content { color: #7f8c8d; font-style: italic; }
-                b { font-weight: bold; }
-                i { font-style: italic; }
-            </style>
-        </head>
-        <body>
-            <h1>Văn Bản Đã Xử Lý</h1>
-    `;
-
-    parts.forEach(part => {
-        if (part.checked) {
-            hasContent = true;
-            htmlContent += `<h2>Phần ${part.index + 1}</h2>`;
-            if (part.text) {
-                htmlContent += `<p>${part.text}</p>`;
-            } else {
-                htmlContent += `<p class="no-content">(Chưa có nội dung)</p>`;
-            }
-        }
-    });
-
-    htmlContent += `
-        </body>
-        </html>
-    `;
-
-    if (!hasContent) {
-        showNotification('Không có phần nào được chọn để tải!', 'warning');
-        return;
-    }
-
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    saveAs(blob, `processed_text_${new Date().toISOString().slice(0, 10)}.html`);
-    showNotification('Đã tải văn bản thành công!');
-}
     function togglePrompt(e) {
         appState.isPromptEnabled = e.target.checked;
         const promptTextarea = document.getElementById('promptTextarea');
@@ -1189,4 +968,4 @@
     document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
-</html>
+</html> 
