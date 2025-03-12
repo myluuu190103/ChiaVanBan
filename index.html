@@ -328,6 +328,13 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
+    .action-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
     .copy-button {
         background: linear-gradient(135deg, var(--primary-color), #3498db);
         color: #fff;
@@ -564,6 +571,28 @@
         margin-right: 10px;
     }
 
+    .download-progress {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
     .notification {
         position: fixed;
         top: 20px;
@@ -702,8 +731,17 @@
                         <option value="asc">Theo thứ tự (1 → n)</option>
                         <option value="desc">Đảo ngược (n → 1)</option>
                     </select>
+                    <label for="downloadFormat">Định dạng:</label>
+                    <select id="downloadFormat">
+                        <option value="html">HTML</option>
+                        <option value="txt">TXT</option>
+                        <option value="docx">DOCX</option>
+                    </select>
                     <label><input type="checkbox" id="selectAllParts" checked> Chọn tất cả</label>
-                    <button id="downloadProcessedButton" class="action-button"><i class="fas fa-download"></i> Tải Văn Bản Đã Nhập</button>
+                    <div class="download-progress">
+                        <button id="downloadProcessedButton" class="action-button"><i class="fas fa-download"></i> Tải Văn Bản</button>
+                        <span class="spinner" id="downloadSpinner"></span>
+                    </div>
                     <button id="doubleCheckButton" class="action-button"><i class="fas fa-check-double"></i> Double Check</button>
                 </div>
             </div>
@@ -752,8 +790,8 @@
         totalCopies: 0,
         wordCount: 2000,
         isPromptEnabled: true,
-        lastPastedText: '', // Văn bản dán cuối cùng cho inputTextEditor
-        lastPastedTextsByPart: {}, // Văn bản dán cuối cùng cho từng phần
+        lastPastedText: '',
+        lastPastedTextsByPart: {},
         blockDuplicatePaste: true,
         originalChunks: [],
     };
@@ -971,7 +1009,7 @@
         const wordsPerChunk = appState.wordCount;
         const chunksCount = Math.ceil(words.length / wordsPerChunk);
         appState.originalChunks = [];
-        appState.lastPastedTextsByPart = {}; // Reset khi chia mới
+        appState.lastPastedTextsByPart = {};
 
         for (let i = 0; i < chunksCount; i++) {
             const start = i * wordsPerChunk;
@@ -1018,10 +1056,10 @@
 
         const expandButton = document.createElement('button');
         expandButton.className = 'expand-button';
-        expandButton.textContent = 'Bung';
+        expandButton.textContent = 'Mở rộng';
         expandButton.addEventListener('click', () => {
             processedEditor.classList.toggle('expanded');
-            expandButton.textContent = processedEditor.classList.contains('expanded') ? 'Thu gọn' : 'Bung';
+            expandButton.textContent = processedEditor.classList.contains('expanded') ? 'Thu gọn' : 'Mở rộng';
         });
 
         const errorRateDisplay = document.createElement('div');
@@ -1070,22 +1108,22 @@
         const duplicates = checkDuplicateChunks(allChunks);
 
         let resultMessage = '';
-        let resultColor = '#27ae60'; // Màu xanh (không lỗi)
+        let resultColor = '#27ae60';
 
         if (duplicates.includes(index)) {
             resultMessage = 'Trùng lặp với phần khác';
-            resultColor = '#e74c3c'; // Màu đỏ (có lỗi)
+            resultColor = '#e74c3c';
         } else if (processedText) {
             const errorRate = calculateErrorRate(originalText, processedText);
             if (errorRate > 10) {
                 resultMessage = 'Sai sót lớn so với gốc';
-                resultColor = '#e67e22'; // Màu cam (cảnh báo)
+                resultColor = '#e67e22';
             } else {
                 resultMessage = 'Hợp lệ';
             }
         } else {
             resultMessage = 'Chưa có văn bản xử lý';
-            resultColor = '#7f8c8d'; // Màu xám (chưa xử lý)
+            resultColor = '#7f8c8d';
         }
 
         displayElement.textContent = `Double Check: ${resultMessage}`;
@@ -1129,7 +1167,10 @@
     function downloadProcessedText() {
         const editors = document.querySelectorAll('.processed-text-editor');
         const order = document.getElementById('downloadOrder').value;
+        const format = document.getElementById('downloadFormat').value;
         const checkboxes = document.querySelectorAll('.part-checkbox');
+        const downloadButton = document.getElementById('downloadProcessedButton');
+        const spinner = document.getElementById('downloadSpinner');
 
         if (editors.length === 0) {
             showNotification('Không có văn bản để tải!', 'warning');
@@ -1138,7 +1179,8 @@
 
         const parts = Array.from(editors).map((editor, index) => ({
             index: index,
-            text: editor.innerHTML.trim(),
+            text: editor.innerText.trim(),
+            html: editor.innerHTML.trim(),
             checked: checkboxes[index].checked
         }));
 
@@ -1146,51 +1188,84 @@
             parts.reverse();
         }
 
-        let hasContent = false;
-        let htmlContent = `
-            <!DOCTYPE html>
-            <html lang="vi">
-            <head>
-                <meta charset="UTF-8">
-                <title>Văn Bản Đã Xử Lý</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
-                    h2 { color: #2c3e50; margin-top: 20px; }
-                    p { margin-bottom: 15px; }
-                    .no-content { color: #7f8c8d; font-style: italic; }
-                    b { font-weight: bold; }
-                    i { font-style: italic; }
-                </style>
-            </head>
-            <body>
-                <h1>Văn Bản Đã Xử Lý</h1>
-        `;
-
-        parts.forEach(part => {
-            if (part.checked) {
-                hasContent = true;
-                htmlContent += `<h2>Phần ${part.index + 1}</h2>`;
-                if (part.text) {
-                    htmlContent += `<p>${part.text}</p>`;
-                } else {
-                    htmlContent += `<p class="no-content">(Chưa có nội dung)</p>`;
-                }
-            }
-        });
-
-        htmlContent += `
-            </body>
-            </html>
-        `;
-
-        if (!hasContent) {
+        const selectedParts = parts.filter(part => part.checked);
+        if (selectedParts.length === 0) {
             showNotification('Không có phần nào được chọn để tải!', 'warning');
             return;
         }
 
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        saveAs(blob, `processed_text_${new Date().toISOString().slice(0, 10)}.html`);
-        showNotification('Đã tải văn bản thành công!');
+        downloadButton.disabled = true;
+        spinner.style.display = 'inline-block';
+
+        setTimeout(() => {
+            let blob;
+            const filename = `processed_text_${new Date().toISOString().slice(0, 10)}`;
+
+            if (format === 'txt') {
+                const textContent = selectedParts.map(part => 
+                    `Phần ${part.index + 1}\n${part.text || '(Chưa có nội dung)'}\n\n`
+                ).join('');
+                blob = new Blob([textContent], { type: 'text/plain' });
+                saveAs(blob, `${filename}.txt`);
+            } else if (format === 'html') {
+                let htmlContent = `
+                    <!DOCTYPE html>
+                    <html lang="vi">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Văn Bản Đã Xử Lý</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+                            h2 { color: #2c3e50; margin-top: 20px; }
+                            p { margin-bottom: 15px; }
+                            .no-content { color: #7f8c8d; font-style: italic; }
+                            b { font-weight: bold; }
+                            i { font-style: italic; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Văn Bản Đã Xử Lý</h1>
+                `;
+                selectedParts.forEach(part => {
+                    htmlContent += `<h2>Phần ${part.index + 1}</h2>`;
+                    htmlContent += part.html ? `<p>${part.html}</p>` : `<p class="no-content">(Chưa có nội dung)</p>`;
+                });
+                htmlContent += `</body></html>`;
+                blob = new Blob([htmlContent], { type: 'text/html' });
+                saveAs(blob, `${filename}.html`);
+            } else if (format === 'docx') {
+                const doc = new docx.Document({
+                    sections: [{
+                        properties: {},
+                        children: selectedParts.map(part => [
+                            new docx.Paragraph({
+                                text: `Phần ${part.index + 1}`,
+                                heading: docx.HeadingLevel.HEADING_2,
+                                spacing: { after: 200 }
+                            }),
+                            new docx.Paragraph({
+                                text: part.text || '(Chưa có nội dung)',
+                                spacing: { after: 300 }
+                            })
+                        ]).flat()
+                    }]
+                });
+                docx.Packer.toBlob(doc).then(blob => {
+                    saveAs(blob, `${filename}.docx`);
+                    completeDownload();
+                });
+                return;
+            }
+
+            saveAs(blob, `${filename}.${format}`);
+            completeDownload();
+        }, 500);
+
+        function completeDownload() {
+            downloadButton.disabled = false;
+            spinner.style.display = 'none';
+            showNotification('Đã tải văn bản thành công!');
+        }
     }
 
     function togglePrompt(e) {
