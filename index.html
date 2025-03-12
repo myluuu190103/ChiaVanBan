@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Chia Văn Bản Thành Nút Sao Chép</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --success-color: #4cc9f0;
+            --light-bg: #f8f9fa;
+            --dark-bg: #212529;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.7;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+            color: #333;
+        }
+        
+        .app-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: var(--secondary-color);
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header p {
+            color: #555;
+            font-size: 1.1rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .instructions {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .instructions h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 250px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            resize: vertical;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-family: inherit;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            transition: var(--transition);
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+        
+        .settings-panel {
+            background-color: rgba(67, 97, 238, 0.05);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .setting-item label {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .setting-item label i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .word-count-control {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .control-button {
+            background-color: #f8f9fa;
+            border: none;
+            color: var(--primary-color);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .control-button:hover {
+            background-color: #e9ecef;
+        }
+        
+        #wordCount {
+            width: 80px;
+            text-align: center;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--secondary-color);
+            padding: 10px 0;
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 0;
+        }
+        
+        .action-button {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+        }
+        
+        .action-button:hover {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .action-button i {
+            margin-right: 8px;
+        }
+        
+        .action-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 5px rgba(67, 97, 238, 0.4);
+        }
+        
+        #splitButtons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .copy-button {
+            background: linear-gradient(45deg, #4cc9f0, #4361ee);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .copy-button:hover {
+            background: linear-gradient(45deg, #3a0ca3, #4cc9f0);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+        }
+        
+        .copy-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        
+        .button-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+        }
+        
+        .button-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .button-range {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        .copy-count {
+            background-color: white;
+            color: var(--secondary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-left: 10px;
+        }
+        
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .success-message i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .stats {
+            background-color: rgba(67, 97, 238, 0.1);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+        
+        /* Styles for prompt editor */
+        .prompt-editor {
+            margin-top: 30px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-top: 30px;
+        }
+        
+        .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .prompt-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .prompt-title i {
+            margin-right: 10px;
+        }
+        
+        .prompt-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .prompt-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .prompt-btn i {
+            margin-right: 6px;
+        }
+        
+        .prompt-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .prompt-btn.save {
+            background-color: #4cc9f0;
+        }
+        
+        .prompt-btn.export {
+            background-color: #4361ee;
+        }
+        
+        .prompt-btn.import {
+            background-color: #3a0ca3;
+        }
+        
+        .hidden-file-input {
+            display: none;
+        }
+        
+        #promptTextarea {
+            min-height: 200px;
+            background-color: #fdfdfd;
+            border-color: #e0e0e0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            #splitButtons {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <h1><i class="fas fa-cut"></i> Trình Chia Văn Bản</h1>
+            <p>Công cụ chia văn bản thành các phần nhỏ và sao chép dễ dàng</p>
+        </header>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-keyboard"></i> Nhập Văn Bản
+            </div>
+            <div class="card-body">
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> Hướng dẫn sử dụng</h3>
+                    <ol>
+                        <li>Nhập hoặc dán văn bản của bạn vào ô bên dưới</li>
+                        <li>Điều chỉnh số lượng từ cho mỗi phần (mặc định là 2000)</li>
+                        <li>Nhấn nút "Chia Văn Bản" để tạo các nút sao chép</li>
+                        <li>Nhấn vào nút để sao chép nội dung tương ứng vào bộ nhớ tạm</li>
+                    </ol>
+                </div>
+                
+                <div class="settings-panel">
+                    <div class="setting-item">
+                        <label for="wordCount"><i class="fas fa-text-width"></i> Số từ mỗi phần:</label>
+                        <div class="word-count-control">
+                            <button onclick="decreaseWordCount()" class="control-button">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="wordCount" value="2000" min="100" max="10000" step="100">
+                            <button onclick="increaseWordCount()" class="control-button">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <textarea id="inputText" placeholder="Nhập văn bản cần chia tại đây..."></textarea>
+                
+                <button onclick="splitText()" class="action-button">
+                    <i class="fas fa-cut"></i> Chia Văn Bản
+                </button>
+                
+                <div id="stats" class="stats" style="display: none;">
+                    <div class="stat-item">
+                        <div class="stat-title">Tổng số từ</div>
+                        <div class="stat-value" id="totalWords">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-title">Số nút sao chép</div>
+                        <div class="stat-value" id="totalButtons">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-title">Số lần sao chép</div>
+                        <div class="stat-value" id="totalCopies">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-copy"></i> Nút Sao Chép
+            </div>
+            <div class="card-body">
+                <div id="splitButtons">
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <p>Chưa có nút sao chép nào. Vui lòng nhập văn bản và nhấn "Chia Văn Bản" để bắt đầu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-edit"></i> Tùy Chỉnh Prompt
+            </div>
+            <div class="card-body">
+                <div class="prompt-editor">
+                    <div class="prompt-header">
+                        <div class="prompt-title">
+                            <i class="fas fa-magic"></i> Văn bản prompt sẽ được sao chép
+                        </div>
+                        <div class="prompt-actions">
+                            <button onclick="savePrompt()" class="prompt-btn save">
+                                <i class="fas fa-save"></i> Lưu
+                            </button>
+                            <button onclick="exportPrompt()" class="prompt-btn export">
+                                <i class="fas fa-file-export"></i> Xuất
+                            </button>
+                            <button onclick="document.getElementById('promptFileInput').click()" class="prompt-btn import">
+                                <i class="fas fa-file-import"></i> Nhập
+                            </button>
+                            <input type="file" id="promptFileInput" class="hidden-file-input" accept=".txt">
+                        </div>
+                    </div>
+                    <textarea id="promptTextarea" placeholder="Nhập prompt tùy chỉnh tại đây..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="successMessage" class="success-message">
+        <i class="fas fa-check-circle"></i>
+        <span>Đã sao chép văn bản thành công!</span>
+    </div>
+
+    <script>
+        // Biến lưu trữ số lần nhấn cho mỗi nút và prompt
+        const clickCounts = {};
+        let totalCopies = 0;
+        let defaultPrompt = `Bạn là một trợ lý AI chuyên chỉnh sửa và định dạng văn bản. Tôi sẽ cung cấp cho bạn một
+đoạn văn bằng tiếng Việt, và bạn cần thực hiện các công việc sau:
+1. Chỉnh sửa chính tả: Sửa tất cả các lỗi chính tả, đảm bảo từ ngữ đúng và tự nhiên theo
+chuẩn tiếng Việt, nhưng không thay đổi ý nghĩa gốc của đoạn văn.
+2. Giữ nguyên mạch văn: Không thay đổi ý nghĩa, cách diễn đạt hoặc giọng điệu của tác
+giả, chỉ làm cho văn bản rõ ràng và mạch lạc hơn.
+3. Chia đoạn hợp lý:
+o Tách đoạn văn thành các đoạn nhỏ, mỗi đoạn tập trung vào một ý chính.
+o Sử dụng khoảng cách để tăng tính dễ đọc.
+4. Định dạng hiệu quả:
+o Thêm tiêu đề chính phù hợp với nội dung đoạn văn.
+o Thêm tiêu đề phụ cho từng đoạn nhỏ nếu cần.
+o Sử dụng in đậm để nhấn mạnh từ khóa hoặc ý quan trọng.
+o Sử dụng nghiêng để tạo điểm nhấn nhẹ nhàng hoặc trích dẫn lời nói.
+5. Không thêm nội dung mới: Chỉ sử dụng thông tin trong đoạn văn được cung cấp,
+không tự ý bổ sung hoặc suy diễn thêm.
+6. Giữ nguyên phong cách tự nhiên: Nếu đoạn văn có giọng điệu thân mật, hài hước
+hoặc giảng giải, hãy giữ nguyên phong cách đó.
+Dưới đây là đoạn văn cần chỉnh sửa:`;
+        
+        // Hàm khởi tạo
+        function initialize() {
+            // Đặt prompt mặc định vào textarea
+            document.getElementById('promptTextarea').value = defaultPrompt;
+            
+            // Thiết lập sự kiện cho input file
+            document.getElementById('promptFileInput').addEventListener('change', importPrompt);
+            
+            // Thiết lập sự kiện input số từ
+            const wordCountInput = document.getElementById('wordCount');
+            wordCountInput.addEventListener('input', function() {
+                let value = parseInt(this.value);
+                if (isNaN(value) || value < 100) {
+                    value = 100;
+                } else if (value > 10000) {
+                    value = 10000;
+                }
+                this.value = value;
+            });
+        }
+        
+        // Hàm tăng giảm số từ
+        function increaseWordCount() {
+            const input = document.getElementById('wordCount');
+            const currentValue = parseInt(input.value);
+            if (currentValue < 10000) {
+                input.value = currentValue + 100;
+            }
+        }
+        
+        function decreaseWordCount() {
+            const input = document.getElementById('wordCount');
+            const currentValue = parseInt(input.value);
+            if (currentValue > 100) {
+                input.value = currentValue - 100;
+            }
+        }
+        
+        // Hàm hiển thị thông báo sao chép thành công
+        function showSuccessMessage() {
+            const message = document.getElementById('successMessage');
+            message.classList.add('show');
+            
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Hàm cập nhật thống kê
+        function updateStats(wordCount, buttonCount) {
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('totalWords').textContent = wordCount;
+            document.getElementById('totalButtons').textContent = buttonCount;
+            document.getElementById('totalCopies').textContent = totalCopies;
+        }
+        
+        // Hàm lưu prompt
+        function savePrompt() {
+            const promptTextarea = document.getElementById('promptTextarea');
+            defaultPrompt = promptTextarea.value;
+            
+            // Hiệu ứng lưu thành công
+            promptTextarea.style.backgroundColor = '#eafaf1';
+            setTimeout(() => {
+                promptTextarea.style.backgroundColor = '';
+            }, 500);
+            
+            // Hiển thị thông báo
+            const successMsg = document.getElementById('successMessage');
+            successMsg.querySelector('span').textContent = 'Đã lưu prompt thành công!';
+            showSuccessMessage();
+        }
+        
+        // Hàm xuất prompt
+        function exportPrompt() {
+            const promptText = document.getElementById('promptTextarea').value;
+            const promptBlob = new Blob([promptText], { type: 'text/plain' });
+            const promptUrl = URL.createObjectURL(promptBlob);
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = promptUrl;
+            downloadLink.download = 'prompt_' + new Date().toISOString().slice(0, 10) + '.txt';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            // Hiển thị thông báo
+            const successMsg = document.getElementById('successMessage');
+            successMsg.querySelector('span').textContent = 'Đã xuất prompt thành công!';
+            showSuccessMessage();
+        }
+        
+        // Hàm nhập prompt
+        function importPrompt(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                // Đọc nội dung file dưới dạng text
+                document.getElementById('promptTextarea').value = e.target.result;
+                
+                // Reset input file để có thể import lại cùng file
+                document.getElementById('promptFileInput').value = '';
+                
+                // Hiển thị thông báo
+                const successMsg = document.getElementById('successMessage');
+                successMsg.querySelector('span').textContent = 'Đã nhập prompt thành công!';
+                showSuccessMessage();
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Hàm chia văn bản thành các nút sao chép
+        function splitText() {
+            const inputText = document.getElementById('inputText').value;
+            const words = inputText.split(/\s+/).filter(word => word.length > 0);
+            const buttonContainer = document.getElementById('splitButtons');
+            
+            // Lấy số từ người dùng đã chọn
+            const wordsPerChunk = parseInt(document.getElementById('wordCount').value);
+            
+            // Xóa các nút cũ
+            buttonContainer.innerHTML = '';
+            
+            // Nếu không có văn bản, hiển thị trạng thái trống
+            if (words.length === 0) {
+                buttonContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <p>Chưa có nút sao chép nào. Vui lòng nhập văn bản và nhấn "Chia Văn Bản" để bắt đầu.</p>
+                    </div>
+                `;
+                document.getElementById('stats').style.display = 'none';
+                return;
+            }
+            
+            // Tạo các nút với số từ mỗi nút theo người dùng chọn
+            const chunksCount = Math.ceil(words.length / wordsPerChunk);
+            
+            for (let i = 0; i < chunksCount; i++) {
+                const startIndex = i * wordsPerChunk;
+                const endIndex = Math.min((i + 1) * wordsPerChunk, words.length);
+                const chunk = words.slice(startIndex, endIndex).join(' ');
+                
+                // Tạo ID cho nút
+                const buttonId = `copy-button-${i}`;
+                
+                // Khởi tạo số lần nhấn nếu chưa có
+                if (!clickCounts[buttonId]) {
+                    clickCounts[buttonId] = 0;
+                }
+                
+                // Tạo nút
+                const button = document.createElement('button');
+                button.className = 'copy-button';
+                button.id = buttonId;
+                
+                // Thêm nội dung nút
+                const buttonContent = document.createElement('div');
+                buttonContent.className = 'button-text';
+                
+                const buttonTitle = document.createElement('span');
+                buttonTitle.className = 'button-title';
+                buttonTitle.innerHTML = `<i class="fas fa-copy"></i> Phần ${i + 1}`;
+                
+                const buttonRange = document.createElement('span');
+                buttonRange.className = 'button-range';
+                buttonRange.textContent = `Từ ${startIndex + 1} đến ${endIndex}`;
+                
+                buttonContent.appendChild(buttonTitle);
+                buttonContent.appendChild(buttonRange);
+                
+                // Thêm đếm số lần nhấn
+                const countSpan = document.createElement('span');
+                countSpan.className = 'copy-count';
+                countSpan.textContent = clickCounts[buttonId];
+                
+                // Thêm các phần tử vào nút
+                button.appendChild(buttonContent);
+                button.appendChild(countSpan);
+                
+                // Thêm sự kiện khi nhấn nút
+                button.addEventListener('click', function() {
+                    // Tăng số lần nhấn
+                    clickCounts[buttonId]++;
+                    totalCopies++;
+                    countSpan.textContent = clickCounts[buttonId];
+                    
+                    // Cập nhật thống kê
+                    updateStats(words.length, chunksCount);
+                    
+                    // Lấy prompt từ textarea
+                    const promptTemplate = document.getElementById('promptTextarea').value;
+                    
+                    // Tạo văn bản sao chép với phần mở đầu
+                    const textToCopy = `${promptTemplate} ${chunk}`;
+                    
+                    // Sao chép vào clipboard
+                    navigator.clipboard.writeText(textToCopy)
+                        .then(() => {
+                            // Hiệu ứng nút khi sao chép thành công
+                            button.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                button.style.transform = '';
+                            }, 200);
+                            
+                            // Hiển thị thông báo thành công
+                            const successMsg = document.getElementById('successMessage');
+                            successMsg.querySelector('span').textContent = 'Đã sao chép văn bản thành công!';
+                            showSuccessMessage();
+                        })
+                        .catch(err => {
+                            console.error('Không thể sao chép: ', err);
+                            alert('Không thể sao chép văn bản. Vui lòng thử lại sau.');
+                        });
+                });
+                
+                // Thêm nút vào container
+                buttonContainer.appendChild(button);
+            }
+            
+            // Cập nhật thống kê
+            updateStats(words.length, chunksCount);
+        }
+        
+        // Khởi tạo khi trang đã tải xong
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
