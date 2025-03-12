@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trình Chia Văn Bản Thành Nút Sao Chép</title>
+    <title>Trình Chia Văn Bản Thành Nút Sao Chép - CPU LOADING</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -216,7 +216,7 @@
     }
 
     #inputTextEditor.expanded {
-        height: auto ;
+        height: auto;
         overflow-y: auto;
     }
 
@@ -226,7 +226,7 @@
     }
 
     .processed-text-editor.expanded {
-        height: auto ;
+        height: auto;
     }
 
     #inputTextEditor:focus, .processed-text-editor:focus {
@@ -384,6 +384,11 @@
     .error-rate {
         font-size: 0.9rem;
         color: var(--accent-color);
+        margin-top: 5px;
+    }
+
+    .double-check-result {
+        font-size: 0.9rem;
         margin-top: 5px;
     }
 
@@ -699,6 +704,7 @@
                     </select>
                     <label><input type="checkbox" id="selectAllParts" checked> Chọn tất cả</label>
                     <button id="downloadProcessedButton" class="action-button"><i class="fas fa-download"></i> Tải Văn Bản Đã Nhập</button>
+                    <button id="doubleCheckButton" class="action-button"><i class="fas fa-check-double"></i> Double Check</button>
                 </div>
             </div>
         </div>
@@ -746,7 +752,8 @@
         totalCopies: 0,
         wordCount: 2000,
         isPromptEnabled: true,
-        lastPastedText: '',
+        lastPastedText: '', // Văn bản dán cuối cùng cho inputTextEditor
+        lastPastedTextsByPart: {}, // Văn bản dán cuối cùng cho từng phần
         blockDuplicatePaste: true,
         originalChunks: [],
     };
@@ -792,10 +799,11 @@
         document.getElementById('savePromptButton').addEventListener('click', savePrompt);
         document.getElementById('exportPromptButton').addEventListener('click', exportPrompt);
         document.getElementById('importPromptButton').addEventListener('click', () => document.getElementById('promptFileInput').click());
-        document.getElementById('inputTextEditor').addEventListener('paste', checkDuplicatePaste);
+        document.getElementById('inputTextEditor').addEventListener('paste', (e) => checkDuplicatePaste(e, 'main'));
         document.getElementById('blockDuplicatePaste').addEventListener('change', toggleBlockDuplicatePaste);
         document.getElementById('resetCopyCount').addEventListener('click', resetCopyCount);
         document.getElementById('downloadProcessedButton').addEventListener('click', downloadProcessedText);
+        document.getElementById('doubleCheckButton').addEventListener('click', doubleCheckAll);
         
         document.getElementById('boldButton').addEventListener('click', () => document.execCommand('bold', false, null));
         document.getElementById('italicButton').addEventListener('click', () => document.execCommand('italic', false, null));
@@ -933,6 +941,22 @@
         return errorRate.toFixed(2);
     }
 
+    function checkDuplicateChunks(chunks) {
+        const duplicates = [];
+        const seen = new Set();
+
+        chunks.forEach((chunk, index) => {
+            const normalizedChunk = normalizeText(chunk);
+            if (seen.has(normalizedChunk)) {
+                duplicates.push(index);
+            } else {
+                seen.add(normalizedChunk);
+            }
+        });
+
+        return duplicates;
+    }
+
     function splitText() {
         const inputText = document.getElementById('inputTextEditor').innerText.trim();
         if (!inputText) {
@@ -947,6 +971,7 @@
         const wordsPerChunk = appState.wordCount;
         const chunksCount = Math.ceil(words.length / wordsPerChunk);
         appState.originalChunks = [];
+        appState.lastPastedTextsByPart = {}; // Reset khi chia mới
 
         for (let i = 0; i < chunksCount; i++) {
             const start = i * wordsPerChunk;
@@ -1003,6 +1028,12 @@
         errorRateDisplay.className = 'error-rate';
         errorRateDisplay.textContent = 'Tỷ lệ sai sót: 0%';
 
+        const doubleCheckDisplay = document.createElement('div');
+        doubleCheckDisplay.className = 'double-check-result';
+        doubleCheckDisplay.style.fontSize = '0.9rem';
+        doubleCheckDisplay.style.color = '#7f8c8d';
+        doubleCheckDisplay.textContent = 'Double Check: Chưa kiểm tra';
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.className = 'part-checkbox';
@@ -1019,15 +1050,64 @@
             const processedText = processedEditor.innerText.trim();
             const errorRate = calculateErrorRate(text, processedText);
             errorRateDisplay.textContent = `Tỷ lệ sai sót: ${errorRate}%`;
+            doubleCheckPart(text, processedText, index, doubleCheckDisplay);
         });
+
+        processedEditor.addEventListener('paste', (e) => checkDuplicatePaste(e, index));
 
         buttonWrapper.appendChild(button);
         buttonWrapper.appendChild(toolbar);
         buttonWrapper.appendChild(processedEditor);
         buttonWrapper.appendChild(expandButton);
         buttonWrapper.appendChild(errorRateDisplay);
+        buttonWrapper.appendChild(doubleCheckDisplay);
         buttonWrapper.appendChild(checkbox);
         container.appendChild(buttonWrapper);
+    }
+
+    function doubleCheckPart(originalText, processedText, index, displayElement) {
+        const allChunks = appState.originalChunks;
+        const duplicates = checkDuplicateChunks(allChunks);
+
+        let resultMessage = '';
+        let resultColor = '#27ae60'; // Màu xanh (không lỗi)
+
+        if (duplicates.includes(index)) {
+            resultMessage = 'Trùng lặp với phần khác';
+            resultColor = '#e74c3c'; // Màu đỏ (có lỗi)
+        } else if (processedText) {
+            const errorRate = calculateErrorRate(originalText, processedText);
+            if (errorRate > 10) {
+                resultMessage = 'Sai sót lớn so với gốc';
+                resultColor = '#e67e22'; // Màu cam (cảnh báo)
+            } else {
+                resultMessage = 'Hợp lệ';
+            }
+        } else {
+            resultMessage = 'Chưa có văn bản xử lý';
+            resultColor = '#7f8c8d'; // Màu xám (chưa xử lý)
+        }
+
+        displayElement.textContent = `Double Check: ${resultMessage}`;
+        displayElement.style.color = resultColor;
+    }
+
+    function doubleCheckAll() {
+        const wrappers = document.querySelectorAll('.button-wrapper');
+        if (wrappers.length === 0) {
+            showNotification('Chưa có phần nào để kiểm tra!', 'warning');
+            return;
+        }
+
+        wrappers.forEach((wrapper, index) => {
+            const originalText = appState.originalChunks[index];
+            const processedEditor = wrapper.querySelector('.processed-text-editor');
+            const processedText = processedEditor.innerText.trim();
+            const doubleCheckDisplay = wrapper.querySelector('.double-check-result');
+            doubleCheckPart(originalText, processedText, index, doubleCheckDisplay);
+        });
+
+        showNotification('Đã kiểm tra tất cả các phần!');
     }
 
     function showEmptyState(container) {
@@ -1047,71 +1127,72 @@
     }
 
     function downloadProcessedText() {
-    const editors = document.querySelectorAll('.processed-text-editor');
-    const order = document.getElementById('downloadOrder').value;
-    const checkboxes = document.querySelectorAll('.part-checkbox');
+        const editors = document.querySelectorAll('.processed-text-editor');
+        const order = document.getElementById('downloadOrder').value;
+        const checkboxes = document.querySelectorAll('.part-checkbox');
 
-    if (editors.length === 0) {
-        showNotification('Không có văn bản để tải!', 'warning');
-        return;
-    }
-
-    const parts = Array.from(editors).map((editor, index) => ({
-        index: index,
-        text: editor.innerHTML.trim(), // Sử dụng innerHTML để giữ định dạng
-        checked: checkboxes[index].checked
-    }));
-
-    if (order === 'desc') {
-        parts.reverse();
-    }
-
-    let hasContent = false;
-    let htmlContent = `
-        <!DOCTYPE html>
-        <html lang="vi">
-        <head>
-            <meta charset="UTF-8">
-            <title>Văn Bản Đã Xử Lý</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
-                h2 { color: #2c3e50; margin-top: 20px; }
-                p { margin-bottom: 15px; }
-                .no-content { color: #7f8c8d; font-style: italic; }
-                b { font-weight: bold; }
-                i { font-style: italic; }
-            </style>
-        </head>
-        <body>
-            <h1>Văn Bản Đã Xử Lý</h1>
-    `;
-
-    parts.forEach(part => {
-        if (part.checked) {
-            hasContent = true;
-            htmlContent += `<h2>Phần ${part.index + 1}</h2>`;
-            if (part.text) {
-                htmlContent += `<p>${part.text}</p>`;
-            } else {
-                htmlContent += `<p class="no-content">(Chưa có nội dung)</p>`;
-            }
+        if (editors.length === 0) {
+            showNotification('Không có văn bản để tải!', 'warning');
+            return;
         }
-    });
 
-    htmlContent += `
-        </body>
-        </html>
-    `;
+        const parts = Array.from(editors).map((editor, index) => ({
+            index: index,
+            text: editor.innerHTML.trim(),
+            checked: checkboxes[index].checked
+        }));
 
-    if (!hasContent) {
-        showNotification('Không có phần nào được chọn để tải!', 'warning');
-        return;
+        if (order === 'desc') {
+            parts.reverse();
+        }
+
+        let hasContent = false;
+        let htmlContent = `
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <title>Văn Bản Đã Xử Lý</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+                    h2 { color: #2c3e50; margin-top: 20px; }
+                    p { margin-bottom: 15px; }
+                    .no-content { color: #7f8c8d; font-style: italic; }
+                    b { font-weight: bold; }
+                    i { font-style: italic; }
+                </style>
+            </head>
+            <body>
+                <h1>Văn Bản Đã Xử Lý</h1>
+        `;
+
+        parts.forEach(part => {
+            if (part.checked) {
+                hasContent = true;
+                htmlContent += `<h2>Phần ${part.index + 1}</h2>`;
+                if (part.text) {
+                    htmlContent += `<p>${part.text}</p>`;
+                } else {
+                    htmlContent += `<p class="no-content">(Chưa có nội dung)</p>`;
+                }
+            }
+        });
+
+        htmlContent += `
+            </body>
+            </html>
+        `;
+
+        if (!hasContent) {
+            showNotification('Không có phần nào được chọn để tải!', 'warning');
+            return;
+        }
+
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        saveAs(blob, `processed_text_${new Date().toISOString().slice(0, 10)}.html`);
+        showNotification('Đã tải văn bản thành công!');
     }
 
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    saveAs(blob, `processed_text_${new Date().toISOString().slice(0, 10)}.html`);
-    showNotification('Đã tải văn bản thành công!');
-}
     function togglePrompt(e) {
         appState.isPromptEnabled = e.target.checked;
         const promptTextarea = document.getElementById('promptTextarea');
@@ -1172,17 +1253,28 @@
         reader.readAsText(file);
     }
 
-    function checkDuplicatePaste(e) {
+    function checkDuplicatePaste(e, partId) {
         const clipboardData = e.clipboardData || window.clipboardData;
         const pastedText = clipboardData.getData('text').trim();
 
-        if (appState.blockDuplicatePaste && appState.lastPastedText === pastedText && pastedText !== '') {
+        let lastPastedText;
+        if (partId === 'main') {
+            lastPastedText = appState.lastPastedText;
+        } else {
+            lastPastedText = appState.lastPastedTextsByPart[partId] || '';
+        }
+
+        if (appState.blockDuplicatePaste && lastPastedText === pastedText && pastedText !== '') {
             e.preventDefault();
-            showNotification('Bạn vừa dán đoạn này rồi, thử nội dung khác nhé!', 'warning');
+            showNotification(`Bạn vừa dán đoạn này rồi vào ${partId === 'main' ? 'ô nhập chính' : `Phần ${partId + 1}`}, thử nội dung khác nhé!`, 'warning');
             return false;
         }
 
-        appState.lastPastedText = pastedText;
+        if (partId === 'main') {
+            appState.lastPastedText = pastedText;
+        } else {
+            appState.lastPastedTextsByPart[partId] = pastedText;
+        }
         return true;
     }
 
