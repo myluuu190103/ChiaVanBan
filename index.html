@@ -584,6 +584,7 @@
             <div class="tab-buttons">
                 <button class="tab-button active" data-tab="text-splitter">Chia Văn Bản</button>
                 <button class="tab-button" data-tab="subtitle-viewer">Lấy Phụ Đề</button>
+                <button class="tab-button" data-tab="subtitle-viewers">GROK AI</button>
             </div>
 
             <div id="text-splitter" class="tab-content active">
@@ -607,7 +608,7 @@
                                 <label><i class="fas fa-text-width"></i> Số từ mỗi phần:</label>
                                 <div class="word-count-control">
                                     <button class="control-button" id="decreaseButton"><i class="fas fa-minus"></i></button>
-                                    <input type="number" id="wordCount" value="2000" min="100" max="10000" step="100">
+                                    <input type="number" id="wordCount" value="2000" step="100">
                                     <button class="control-button" id="increaseButton"><i class="fas fa-plus"></i></button>
                                 </div>
                             </div>
@@ -690,6 +691,21 @@
                     </div>
                 </div>
             </div>
+            <div id="subtitle-viewers" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-closed-captioning"></i> Grok AI 
+                    </div>
+                    <div class="card-body">
+                        <div class="button-container">
+                            <a href="https://grok.com/" target="_blank" class="btn btn-primary">
+                               Bấm vào này để mở!
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
@@ -793,27 +809,24 @@
     }
 
     function updateWordCount(e) {
-        let value = parseInt(e.target.value);
-        appState.wordCount = Math.min(Math.max(value, 100), 10000);
-        e.target.value = appState.wordCount;
+    let value = parseInt(e.target.value);
+    appState.wordCount = value >= 1 ? value : 1; // Chỉ giữ giới hạn tối thiểu là 1 để tránh lỗi
+    e.target.value = appState.wordCount;
+    localStorage.setItem('wordCount', appState.wordCount);
+}
+function increaseWordCount() {
+    appState.wordCount += 100;
+    document.getElementById('wordCount').value = appState.wordCount;
+    localStorage.setItem('wordCount', appState.wordCount);
+}
+
+function decreaseWordCount() {
+    if (appState.wordCount > 1) { // Đảm bảo không giảm xuống dưới 1
+        appState.wordCount -= 100;
+        document.getElementById('wordCount').value = appState.wordCount;
         localStorage.setItem('wordCount', appState.wordCount);
     }
-
-    function increaseWordCount() {
-        if (appState.wordCount < 10000) {
-            appState.wordCount += 100;
-            document.getElementById('wordCount').value = appState.wordCount;
-            localStorage.setItem('wordCount', appState.wordCount);
-        }
-    }
-
-    function decreaseWordCount() {
-        if (appState.wordCount > 100) {
-            appState.wordCount -= 100;
-            document.getElementById('wordCount').value = appState.wordCount;
-            localStorage.setItem('wordCount', appState.wordCount);
-        }
-    }
+}
 
     function showNotification(message, type = 'success') {
         const notification = document.getElementById('notification');
@@ -1049,17 +1062,40 @@
     }
 
     async function fetchYouTubeText(apiUrl) {
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) throw new Error('Lỗi khi gọi API');
-            const data = await response.text();
-            return data;
-        } catch (error) {
-            console.error('Lỗi khi lấy nội dung từ API:', error);
-            showNotification('Không thể lấy nội dung từ YouTube!', 'warning');
-            return null;
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Lỗi khi gọi API');
+        let data = await response.text();
+
+        // Chuỗi JSON cần xóa
+        const jsonToRemove = '{"error":0,"message":"Done","source":"by: giapducthang.com","text":" XÓA CÁI NÀY CÒN MẤY CÁI SAU GIỮ NGUYÊN "}';
+        
+        // Xóa đoạn JSON khỏi dữ liệu trả về
+        if (data.includes(jsonToRemove)) {
+            data = data.replace(jsonToRemove, '').trim();
         }
+
+        // Nếu dữ liệu vẫn là JSON, thử lấy phần "text" hoặc nội dung còn lại
+        try {
+            const parsedData = JSON.parse(data);
+            if (parsedData.text) {
+                data = parsedData.text.trim(); // Chỉ lấy phần text nếu có
+            }
+        } catch (e) {
+            // Nếu không phải JSON, giữ nguyên dữ liệu đã xóa đoạn JSON
+        }
+
+        if (!data) {
+            throw new Error('Không có nội dung hợp lệ sau khi xử lý');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Lỗi khi lấy nội dung từ API:', error);
+        showNotification('Không thể lấy nội dung từ YouTube!', 'warning');
+        return null;
     }
+}
 
     function checkDuplicatePaste(e) {
         const clipboardData = e.clipboardData || window.clipboardData;
