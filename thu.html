@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập và Tải Link</title>
+</head>
+<body>
+    <h2>Nhập Link</h2>
+    <input type="text" id="inputLink" placeholder="Dán link mã hóa vào đây" style="width: 300px;">
+    <button onclick="processLink()">Tải</button>
+    <p>Kết quả:</p>
+    <pre id="output"></pre>
+
+    <script>
+        function processLink() {
+            // Lấy giá trị từ input
+            const inputLink = document.getElementById("inputLink").value;
+            if (!inputLink) {
+                alert("Vui lòng nhập link!");
+                return;
+            }
+
+            // Tạo URL trung gian
+            const intermediateUrl = `https://getsubs.cc/?u=${inputLink}`;
+            
+            // Gửi yêu cầu fetch tới intermediateUrl (dùng proxy nếu cần do CORS)
+            fetch(intermediateUrl)
+                .then(response => response.text())
+                .then(html => {
+                    // Phân tích HTML để tìm URL cuối cùng (giả sử nó nằm trong một thẻ cụ thể)
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
+                    // Ví dụ: tìm link trong thẻ <a> hoặc điều kiện khác
+                    const finalLink = extractFinalLink(doc); // Hàm này bạn cần tự định nghĩa
+                    
+                    if (finalLink) {
+                        // Tải nội dung từ URL cuối cùng
+                        fetch(finalLink)
+                            .then(response => response.text())
+                            .then(data => {
+                                document.getElementById("output").textContent = data;
+                            })
+                            .catch(error => {
+                                document.getElementById("output").textContent = "Lỗi khi tải nội dung: " + error;
+                            });
+                    } else {
+                        document.getElementById("output").textContent = "Không tìm thấy link cuối cùng!";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("output").textContent = "Lỗi khi tải trang trung gian: " + error;
+                });
+        }
+
+        // Hàm giả lập để trích xuất URL cuối cùng từ HTML
+        function extractFinalLink(doc) {
+            // Tùy thuộc vào cấu trúc HTML của trang https://getsubs.cc/?u=...
+            // Ví dụ: lấy từ thẻ <a> hoặc dựa trên điều kiện của trang
+            const linkElement = doc.querySelector("a[href*='get_f.php']"); // Điều chỉnh selector theo thực tế
+            return linkElement ? linkElement.href : null;
+        }
+    </script>
+</body>
+</html>

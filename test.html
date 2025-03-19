@@ -6,7 +6,6 @@
     <title>Trình Chia Văn Bản Thành Nút Sao Chép</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-    /* ===== BIẾN CSS TOÀN CỤC ===== */
     :root {
         --primary-color: #4a69bd;
         --primary-light: rgba(74, 105, 189, 0.1);
@@ -14,7 +13,6 @@
         --accent-color: #e74c3c;
         --success-color: #27ae60;
         --warning-color: #e67e22;
-
         --light-bg: #ecf0f1;
         --card-bg: #ffffff;
         --text-dark: #2c3e50;
@@ -27,7 +25,6 @@
         --card-padding: 30px;
     }
 
-    /* ===== RESET & BASE STYLES ===== */
     * {
         margin: 0;
         padding: 0;
@@ -43,13 +40,11 @@
         line-height: 1.6;
     }
 
-    /* ===== LAYOUT CONTAINERS ===== */
     .app-container {
         max-width: var(--container-max-width);
         margin: 0 auto;
     }
 
-    /* ===== HEADER STYLES ===== */
     .header {
         text-align: center;
         margin-bottom: 40px;
@@ -75,7 +70,61 @@
         margin-top: 8px;
     }
 
-    /* ===== CARD COMPONENT ===== */
+    /* Tab styles */
+    .tab-container {
+        margin-bottom: 30px;
+    }
+
+    .tab-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab-button {
+        background: var(--light-bg);
+        border: 1px solid var(--border-color);
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .tab-button.active {
+        background: var(--primary-color);
+        color: #fff;
+        border-color: var(--primary-color);
+    }
+
+    .tab-button:hover:not(.active) {
+        background: var(--primary-light);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Iframe styles */
+    .iframe-container {
+        width: 100%;
+        height: 600px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
     .card {
         background: var(--card-bg);
         border-radius: var(--border-radius);
@@ -105,7 +154,6 @@
         padding: var(--card-padding);
     }
 
-    /* ===== INSTRUCTIONS COMPONENT ===== */
     .instructions {
         background: var(--primary-light);
         padding: 20px;
@@ -132,7 +180,6 @@
         margin-bottom: 8px;
     }
 
-    /* ===== SETTINGS PANEL ===== */
     .settings-panel {
         background: var(--light-bg);
         padding: 20px;
@@ -155,7 +202,6 @@
         gap: 8px;
     }
 
-    /* ===== WORD COUNT CONTROL ===== */
     .word-count-control {
         display: flex;
         align-items: center;
@@ -196,7 +242,6 @@
         opacity: 0;
     }
 
-    /* ===== TEXTAREA ===== */
     textarea {
         width: 100%;
         min-height: 250px;
@@ -224,7 +269,6 @@
         background: #fdfdfd;
     }
 
-    /* ===== BUTTONS ===== */
     .action-button {
         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         color: #fff;
@@ -304,7 +348,6 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
-    /* ===== PROCESSED TEXTAREA ===== */
     .processed-textarea {
         width: 100%;
         min-height: 150px;
@@ -329,7 +372,6 @@
         margin-top: 5px;
     }
 
-    /* ===== SPLIT BUTTONS GRID ===== */
     #splitButtons {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -337,7 +379,6 @@
         margin-top: 20px;
     }
 
-    /* ===== STATS ===== */
     .stats {
         display: flex;
         justify-content: space-around;
@@ -385,7 +426,6 @@
         opacity: 0.9;
     }
 
-    /* ===== TOGGLE SWITCH ===== */
     .toggle-label {
         display: flex;
         align-items: center;
@@ -423,7 +463,6 @@
         left: 22px;
     }
 
-    /* ===== PROMPT EDITOR ===== */
     .prompt-header {
         display: flex;
         justify-content: space-between;
@@ -475,7 +514,6 @@
         background: var(--primary-color);
     }
 
-    /* ===== EMPTY STATE ===== */
     .empty-state {
         text-align: center;
         padding: 40px;
@@ -488,7 +526,6 @@
         margin-bottom: 15px;
     }
 
-    /* ===== NOTIFICATION ===== */
     .notification {
         position: fixed;
         top: 20px;
@@ -526,12 +563,13 @@
         75% { transform: translateX(-4px); }
     }
 
-    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
         .header h1 { font-size: 2rem; }
         #splitButtons { grid-template-columns: 1fr; }
         .stats { flex-direction: column; gap: 20px; }
         .prompt-header { flex-direction: column; align-items: flex-start; }
+        .tab-buttons { flex-direction: column; gap: 5px; }
+        .iframe-container { height: 400px; }
     }
     </style>
 </head>
@@ -542,93 +580,115 @@
             <p>Chia nhỏ văn bản và sao chép dễ dàng với các nút tiện lợi</p>
         </header>
 
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-keyboard"></i> Nhập Văn Bản
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="text-splitter">Chia Văn Bản</button>
+                <button class="tab-button" data-tab="subtitle-viewer">Xem Phụ Đề</button>
             </div>
-            <div class="card-body">
-                <div class="instructions">
-                    <h3><i class="fas fa-info-circle"></i> Hướng Dẫn</h3>
-                    <ol>
-                        <li>Dán hoặc nhập văn bản vào ô dưới đây.</li>
-                        <li>Chọn số từ mỗi phần (mặc định: 2000).</li>
-                        <li>Nhấn "Chia Văn Bản" để tạo các nút sao chép.</li>
-                        <li>Nhập dữ liệu đã xử lý để kiểm tra sai sót.</li>
-                    </ol>
-                </div>
 
-                <div class="settings-panel">
-                    <div class="setting-item">
-                        <label><i class="fas fa-text-width"></i> Số từ mỗi phần:</label>
-                        <div class="word-count-control">
-                            <button class="control-button" id="decreaseButton"><i class="fas fa-minus"></i></button>
-                            <input type="number" id="wordCount" value="2000" min="100" max="10000" step="100">
-                            <button class="control-button" id="increaseButton"><i class="fas fa-plus"></i></button>
+            <div id="text-splitter" class="tab-content active">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-keyboard"></i> Nhập Văn Bản
+                    </div>
+                    <div class="card-body">
+                        <div class="instructions">
+                            <h3><i class="fas fa-info-circle"></i> Hướng Dẫn</h3>
+                            <ol>
+                                <li>Dán hoặc nhập văn bản, hoặc dán link YouTube để lấy nội dung.</li>
+                                <li>Chọn số từ mỗi phần (mặc định: 2000).</li>
+                                <li>Nhấn "Chia Văn Bản" để tạo các nút sao chép.</li>
+                                <li>Nhập dữ liệu đã xử lý để kiểm tra sai sót.</li>
+                            </ol>
+                        </div>
+
+                        <div class="settings-panel">
+                            <div class="setting-item">
+                                <label><i class="fas fa-text-width"></i> Số từ mỗi phần:</label>
+                                <div class="word-count-control">
+                                    <button class="control-button" id="decreaseButton"><i class="fas fa-minus"></i></button>
+                                    <input type="number" id="wordCount" value="2000" min="100" max="10000" step="100">
+                                    <button class="control-button" id="increaseButton"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label><i class="fas fa-paste"></i> Chặn dán trùng:</label>
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="blockDuplicatePaste" checked>
+                                    <span>Bật</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <textarea id="inputText" placeholder="Nhập, dán văn bản hoặc link YouTube tại đây..."></textarea>
+                        <button id="splitButton" class="action-button"><i class="fas fa-cut"></i> Chia Văn Bản</button>
+
+                        <div id="stats" class="stats" style="display: none;">
+                            <div class="stat-item">
+                                <div class="stat-title">Tổng số từ</div>
+                                <div class="stat-value" id="totalWords">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-title">Số phần</div>
+                                <div class="stat-value" id="totalButtons">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-title">Lần sao chép</div>
+                                <div class="stat-value" id="totalCopies">0</div>
+                            </div>
+                            <button id="resetCopyCount" class="reset-button"><i class="fas fa-sync-alt"></i> Reset</button>
                         </div>
                     </div>
-                    <div class="setting-item">
-                        <label><i class="fas fa-paste"></i> Chặn dán trùng:</label>
-                        <label class="toggle-label">
-                            <input type="checkbox" id="blockDuplicatePaste" checked>
-                            <span>Bật</span>
-                        </label>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-copy"></i> Nút Sao Chép & Kiểm Tra
+                    </div>
+                    <div class="card-body">
+                        <div id="splitButtons">
+                            <div class="empty-state">
+                                <i class="fas fa-file-alt"></i>
+                                <p>Chưa có nội dung. Nhập văn bản hoặc link YouTube và nhấn "Chia Văn Bản" để bắt đầu.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <textarea id="inputText" placeholder="Nhập hoặc dán văn bản tại đây..."></textarea>
-                <button id="splitButton" class="action-button"><i class="fas fa-cut"></i> Chia Văn Bản</button>
-
-                <div id="stats" class="stats" style="display: none;">
-                    <div class="stat-item">
-                        <div class="stat-title">Tổng số từ</div>
-                        <div class="stat-value" id="totalWords">0</div>
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-edit"></i> Tùy Chỉnh Prompt
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-title">Số phần</div>
-                        <div class="stat-value" id="totalButtons">0</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-title">Lần sao chép</div>
-                        <div class="stat-value" id="totalCopies">0</div>
-                    </div>
-                    <button id="resetCopyCount" class="reset-button"><i class="fas fa-sync-alt"></i> Reset</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-copy"></i> Nút Sao Chép & Kiểm Tra
-            </div>
-            <div class="card-body">
-                <div id="splitButtons">
-                    <div class="empty-state">
-                        <i class="fas fa-file-alt"></i>
-                        <p>Chưa có nội dung. Nhập văn bản và nhấn "Chia Văn Bản" để bắt đầu.</p>
+                    <div class="card-body">
+                        <div class="prompt-header">
+                            <div class="prompt-title"><i class="fas fa-magic"></i> Prompt Sao Chép</div>
+                            <div class="prompt-actions">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="promptToggle" checked>
+                                    <span>Bật Prompt</span>
+                                </label>
+                                <button id="savePromptButton" class="prompt-btn save"><i class="fas fa-save"></i> Lưu</button>
+                                <button id="exportPromptButton" class="prompt-btn export"><i class="fas fa-file-export"></i> Xuất</button>
+                                <button id="importPromptButton" class="prompt-btn"><i class="fas fa-file-import"></i> Nhập</button>
+                                <input type="file" id="promptFileInput" accept=".txt" style="display: none;">
+                            </div>
+                        </div>
+                        <textarea id="promptTextarea" placeholder="Nhập prompt tùy chỉnh..."></textarea>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-edit"></i> Tùy Chỉnh Prompt
-            </div>
-            <div class="card-body">
-                <div class="prompt-header">
-                    <div class="prompt-title"><i class="fas fa-magic"></i> Prompt Sao Chép</div>
-                    <div class="prompt-actions">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="promptToggle" checked>
-                            <span>Bật Prompt</span>
-                        </label>
-                        <button id="savePromptButton" class="prompt-btn save"><i class="fas fa-save"></i> Lưu</button>
-                        <button id="exportPromptButton" class="prompt-btn export"><i class="fas fa-file-export"></i> Xuất</button>
-                        <button id="importPromptButton" class="prompt-btn"><i class="fas fa-file-import"></i> Nhập</button>
-                        <input type="file" id="promptFileInput" accept=".txt" style="display: none;">
+            <div id="subtitle-viewer" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-closed-captioning"></i> Xem Phụ Đề
+                    </div>
+                    <div class="card-body">
+                        <div class="iframe-container">
+                            <iframe src="https://getsubs.cc/" allowfullscreen></iframe>
+                        </div>
                     </div>
                 </div>
-                <textarea id="promptTextarea" placeholder="Nhập prompt tùy chỉnh..."></textarea>
             </div>
         </div>
     </div>
@@ -655,7 +715,7 @@
         isPromptEnabled: true,
         lastPastedText: '',
         blockDuplicatePaste: true,
-        originalChunks: [], // Lưu các phần văn bản gốc
+        originalChunks: [],
     };
 
     function initializeApp() {
@@ -663,8 +723,10 @@
         document.getElementById('promptTextarea').value = appState.defaultPrompt;
         document.getElementById('wordCount').value = appState.wordCount;
         document.getElementById('blockDuplicatePaste').checked = appState.blockDuplicatePaste;
+        document.getElementById('promptToggle').checked = appState.isPromptEnabled;
+        togglePrompt({ target: document.getElementById('promptToggle') }); // Khởi tạo trạng thái prompt
         setupEventListeners();
-        updatePromptState();
+        setupTabListeners();
     }
 
     function loadSavedSettings() {
@@ -703,6 +765,31 @@
         document.getElementById('inputText').addEventListener('paste', checkDuplicatePaste);
         document.getElementById('blockDuplicatePaste').addEventListener('change', toggleBlockDuplicatePaste);
         document.getElementById('resetCopyCount').addEventListener('click', resetCopyCount);
+    }
+
+    function setupTabListeners() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+    }
+
+    function switchTab(tabId) {
+        const tabContents = document.querySelectorAll('.tab-content');
+        const tabButtons = document.querySelectorAll('.tab-button');
+
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+        tabButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+
+        document.getElementById(tabId).classList.add('active');
+        document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
     }
 
     function updateWordCount(e) {
@@ -772,45 +859,45 @@
     }
 
     function normalizeText(text) {
-    return text
-        .replace(/\s+/g, ' ') // Chuẩn hóa khoảng trắng
-        .trim()
-        .toLowerCase(); // Chuyển về chữ thường (tùy chọn)
-}
+        return text
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+    }
 
-function calculateErrorRate(originalText, processedText) {
-    const originalSentences = normalizeText(originalText)
-        .split(/[.!?]+/)
-        .map(sentence => sentence.trim())
-        .filter(sentence => sentence.length > 0);
-    
-    const processedSentences = normalizeText(processedText)
-        .split(/[.!?]+/)
-        .map(sentence => sentence.trim())
-        .filter(sentence => sentence.length > 0);
+    function calculateErrorRate(originalText, processedText) {
+        const originalSentences = normalizeText(originalText)
+            .split(/[.!?]+/)
+            .map(sentence => sentence.trim())
+            .filter(sentence => sentence.length > 0);
+        
+        const processedSentences = normalizeText(processedText)
+            .split(/[.!?]+/)
+            .map(sentence => sentence.trim())
+            .filter(sentence => sentence.length > 0);
 
-    let missingInProcessed = 0;
-    let missingInOriginal = 0;
+        let missingInProcessed = 0;
+        let missingInOriginal = 0;
 
-    originalSentences.forEach(originalSentence => {
-        if (!processedSentences.some(procSentence => procSentence === originalSentence)) {
-            missingInProcessed++;
-        }
-    });
+        originalSentences.forEach(originalSentence => {
+            if (!processedSentences.some(procSentence => procSentence === originalSentence)) {
+                missingInProcessed++;
+            }
+        });
 
-    processedSentences.forEach(procSentence => {
-        if (!originalSentences.some(origSentence => origSentence === originalSentence)) {
-            missingInOriginal++;
-        }
-    });
+        processedSentences.forEach(procSentence => {
+            if (!originalSentences.some(origSentence => origSentence === procSentence)) {
+                missingInOriginal++;
+            }
+        });
 
-    const totalDifferences = missingInProcessed + missingInOriginal;
-    const errorRate = originalSentences.length > 0 
-        ? (totalDifferences / originalSentences.length) * 100 
-        : 0;
+        const totalDifferences = missingInProcessed + missingInOriginal;
+        const errorRate = originalSentences.length > 0 
+            ? (totalDifferences / originalSentences.length) * 100 
+            : 0;
 
-    return errorRate.toFixed(2);
-}
+        return errorRate.toFixed(2);
+    }
 
     function splitText() {
         const inputText = document.getElementById('inputText').value.trim();
@@ -886,7 +973,7 @@ function calculateErrorRate(originalText, processedText) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-file-alt"></i>
-                <p>Chưa có nội dung. Nhập văn bản và nhấn "Chia Văn Bản" để bắt đầu.</p>
+                <p>Chưa có nội dung. Nhập văn bản hoặc link YouTube và nhấn "Chia Văn Bản" để bắt đầu.</p>
             </div>
         `;
     }
@@ -951,9 +1038,49 @@ function calculateErrorRate(originalText, processedText) {
         reader.readAsText(file);
     }
 
+    function extractYouTubeId(url) {
+        const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+        const match = url.match(regex);
+        return match ? match[1] : null;
+    }
+
+    function generateApiUrl(videoId) {
+        return `https://auto.webhook.vn/webhook/text-videos-youtube?url=https://www.youtube.com/watch?v=${videoId}&source=1`;
+    }
+
+    async function fetchYouTubeText(apiUrl) {
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Lỗi khi gọi API');
+            const data = await response.text();
+            return data;
+        } catch (error) {
+            console.error('Lỗi khi lấy nội dung từ API:', error);
+            showNotification('Không thể lấy nội dung từ YouTube!', 'warning');
+            return null;
+        }
+    }
+
     function checkDuplicatePaste(e) {
         const clipboardData = e.clipboardData || window.clipboardData;
-        const pastedText = clipboardData.getData('text').trim();
+        let pastedText = clipboardData.getData('text').trim();
+
+        const videoId = extractYouTubeId(pastedText);
+        if (videoId) {
+            e.preventDefault();
+            const apiUrl = generateApiUrl(videoId);
+            showNotification('Đang lấy nội dung từ YouTube...', 'success');
+
+            fetchYouTubeText(apiUrl).then(text => {
+                if (text) {
+                    const inputTextArea = document.getElementById('inputText');
+                    inputTextArea.value = text;
+                    appState.lastPastedText = text;
+                    showNotification('Đã tải nội dung từ YouTube!', 'success');
+                }
+            });
+            return false;
+        }
 
         if (appState.blockDuplicatePaste && appState.lastPastedText === pastedText && pastedText !== '') {
             e.preventDefault();
@@ -968,4 +1095,4 @@ function calculateErrorRate(originalText, processedText) {
     document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
-</html> 
+</html>
