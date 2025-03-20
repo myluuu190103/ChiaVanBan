@@ -70,7 +70,6 @@
         margin-top: 8px;
     }
 
-    /* Tab styles */
     .tab-container {
         margin-bottom: 30px;
     }
@@ -110,7 +109,6 @@
         display: block;
     }
 
-    /* Iframe styles */
     .iframe-container {
         width: 100%;
         height: 600px;
@@ -653,6 +651,9 @@
                                 <p>Chưa có nội dung. Nhập văn bản hoặc link YouTube và nhấn "Chia Văn Bản" để bắt đầu.</p>
                             </div>
                         </div>
+                        <button id="splitButtonBottom" class="action-button" style="margin-top: 20px;">
+                            <i class="fas fa-cut"></i> Chia Văn Bản
+                        </button>
                     </div>
                 </div>
 
@@ -740,7 +741,7 @@
         document.getElementById('wordCount').value = appState.wordCount;
         document.getElementById('blockDuplicatePaste').checked = appState.blockDuplicatePaste;
         document.getElementById('promptToggle').checked = appState.isPromptEnabled;
-        togglePrompt({ target: document.getElementById('promptToggle') }); // Khởi tạo trạng thái prompt
+        togglePrompt({ target: document.getElementById('promptToggle') });
         setupEventListeners();
         setupTabListeners();
     }
@@ -774,6 +775,7 @@
         document.getElementById('decreaseButton').addEventListener('click', decreaseWordCount);
         document.getElementById('increaseButton').addEventListener('click', increaseWordCount);
         document.getElementById('splitButton').addEventListener('click', splitText);
+        document.getElementById('splitButtonBottom').addEventListener('click', splitText); // Thêm sự kiện cho nút mới
         document.getElementById('promptToggle').addEventListener('change', togglePrompt);
         document.getElementById('savePromptButton').addEventListener('click', savePrompt);
         document.getElementById('exportPromptButton').addEventListener('click', exportPrompt);
@@ -809,24 +811,25 @@
     }
 
     function updateWordCount(e) {
-    let value = parseInt(e.target.value);
-    appState.wordCount = value >= 1 ? value : 1; // Chỉ giữ giới hạn tối thiểu là 1 để tránh lỗi
-    e.target.value = appState.wordCount;
-    localStorage.setItem('wordCount', appState.wordCount);
-}
-function increaseWordCount() {
-    appState.wordCount += 100;
-    document.getElementById('wordCount').value = appState.wordCount;
-    localStorage.setItem('wordCount', appState.wordCount);
-}
+        let value = parseInt(e.target.value);
+        appState.wordCount = value >= 1 ? value : 1;
+        e.target.value = appState.wordCount;
+        localStorage.setItem('wordCount', appState.wordCount);
+    }
 
-function decreaseWordCount() {
-    if (appState.wordCount > 1) { // Đảm bảo không giảm xuống dưới 1
-        appState.wordCount -= 100;
+    function increaseWordCount() {
+        appState.wordCount += 100;
         document.getElementById('wordCount').value = appState.wordCount;
         localStorage.setItem('wordCount', appState.wordCount);
     }
-}
+
+    function decreaseWordCount() {
+        if (appState.wordCount > 1) {
+            appState.wordCount -= 100;
+            document.getElementById('wordCount').value = appState.wordCount;
+            localStorage.setItem('wordCount', appState.wordCount);
+        }
+    }
 
     function showNotification(message, type = 'success') {
         const notification = document.getElementById('notification');
@@ -912,7 +915,16 @@ function decreaseWordCount() {
         return errorRate.toFixed(2);
     }
 
+    function resetState() {
+        appState.totalCopies = 0;
+        appState.clickCounts = {};
+        localStorage.setItem('totalCopies', appState.totalCopies);
+        localStorage.setItem('clickCounts', JSON.stringify(appState.clickCounts));
+        document.getElementById('totalCopies').textContent = '0';
+    }
+
     function splitText() {
+        resetState(); // Reset trạng thái trước khi chia
         const inputText = document.getElementById('inputText').value.trim();
         if (!inputText) {
             showEmptyState(document.getElementById('splitButtons'));
@@ -1062,40 +1074,35 @@ function decreaseWordCount() {
     }
 
     async function fetchYouTubeText(apiUrl) {
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error('Lỗi khi gọi API');
-        let data = await response.text();
-
-        // Chuỗi JSON cần xóa
-        const jsonToRemove = '{"error":0,"message":"Done","source":"by: giapducthang.com","text":" XÓA CÁI NÀY CÒN MẤY CÁI SAU GIỮ NGUYÊN "}';
-        
-        // Xóa đoạn JSON khỏi dữ liệu trả về
-        if (data.includes(jsonToRemove)) {
-            data = data.replace(jsonToRemove, '').trim();
-        }
-
-        // Nếu dữ liệu vẫn là JSON, thử lấy phần "text" hoặc nội dung còn lại
         try {
-            const parsedData = JSON.parse(data);
-            if (parsedData.text) {
-                data = parsedData.text.trim(); // Chỉ lấy phần text nếu có
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Lỗi khi gọi API');
+            let data = await response.text();
+
+            const jsonToRemove = '{"error":0,"message":"Done","source":"by: giapducthang.com","text":" XÓA CÁI NÀY CÒN MẤY CÁI SAU GIỮ NGUYÊN "}';
+            if (data.includes(jsonToRemove)) {
+                data = data.replace(jsonToRemove, '').trim();
             }
-        } catch (e) {
-            // Nếu không phải JSON, giữ nguyên dữ liệu đã xóa đoạn JSON
-        }
 
-        if (!data) {
-            throw new Error('Không có nội dung hợp lệ sau khi xử lý');
-        }
+            try {
+                const parsedData = JSON.parse(data);
+                if (parsedData.text) {
+                    data = parsedData.text.trim();
+                }
+            } catch (e) {
+            }
 
-        return data;
-    } catch (error) {
-        console.error('Lỗi khi lấy nội dung từ API:', error);
-        showNotification('Không thể lấy nội dung từ YouTube!', 'warning');
-        return null;
+            if (!data) {
+                throw new Error('Không có nội dung hợp lệ sau khi xử lý');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Lỗi khi lấy nội dung từ API:', error);
+            showNotification('Không thể lấy nội dung từ YouTube!', 'warning');
+            return null;
+        }
     }
-}
 
     function checkDuplicatePaste(e) {
         const clipboardData = e.clipboardData || window.clipboardData;
